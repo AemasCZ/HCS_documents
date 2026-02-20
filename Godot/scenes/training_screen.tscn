@@ -1,0 +1,71 @@
+[gd_scene format=3 uid="uid://dsh4jlert3afx"]
+
+[ext_resource type="Script" uid="uid://cufne81bfp2p2" path="res://scenes/training_screen.gd" id="1_0lg18"]
+
+[node name="TrainingScreen" type="Control" unique_id=341591305]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_0lg18")
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=2100613502]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer" unique_id=336255329]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="CenterContainer/VBoxContainer" unique_id=1377983747]
+layout_mode = 2
+text = "Training Plan"
+
+[node name="SlotsGrid" type="GridContainer" parent="CenterContainer/VBoxContainer" unique_id=1899040835]
+layout_mode = 2
+columns = 2
+
+[node name="Slot1Label" type="Label" parent="CenterContainer/VBoxContainer/SlotsGrid" unique_id=709071059]
+layout_mode = 2
+text = "Slot 1"
+
+[node name="Slot1Option" type="OptionButton" parent="CenterContainer/VBoxContainer/SlotsGrid" unique_id=1694867260]
+layout_mode = 2
+
+[node name="Slot2Label" type="Label" parent="CenterContainer/VBoxContainer/SlotsGrid" unique_id=1782441872]
+layout_mode = 2
+text = "Slot 2"
+
+[node name="Slot2Option" type="OptionButton" parent="CenterContainer/VBoxContainer/SlotsGrid" unique_id=2032787433]
+layout_mode = 2
+
+[node name="Slot3Label" type="Label" parent="CenterContainer/VBoxContainer/SlotsGrid" unique_id=1604412689]
+layout_mode = 2
+text = "Slot 3"
+
+[node name="Slot3Option" type="OptionButton" parent="CenterContainer/VBoxContainer/SlotsGrid" unique_id=838986576]
+layout_mode = 2
+
+[node name="Slot4Label" type="Label" parent="CenterContainer/VBoxContainer/SlotsGrid" unique_id=20488935]
+layout_mode = 2
+text = "Slot 4"
+
+[node name="Slot4Option" type="OptionButton" parent="CenterContainer/VBoxContainer/SlotsGrid" unique_id=1428751239]
+layout_mode = 2
+
+[node name="HintLable" type="Label" parent="CenterContainer/VBoxContainer" unique_id=1035089753]
+layout_mode = 2
+text = "Plan is saved for the whole season (until you change it)."
+
+[node name="ButtonRow" type="HBoxContainer" parent="CenterContainer/VBoxContainer" unique_id=265736417]
+layout_mode = 2
+
+[node name="SaveButton" type="Button" parent="CenterContainer/VBoxContainer/ButtonRow" unique_id=1864468584]
+layout_mode = 2
+text = "Save plan"
+
+[node name="BackButton" type="Button" parent="CenterContainer/VBoxContainer/ButtonRow" unique_id=1234054550]
+layout_mode = 2
+text = "Back"

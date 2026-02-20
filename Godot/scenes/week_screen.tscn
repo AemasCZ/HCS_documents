@@ -1,0 +1,52 @@
+[gd_scene format=3 uid="uid://5eccqe3yjm8q"]
+
+[ext_resource type="Script" uid="uid://co1jlk25ehteu" path="res://scenes/week_screen.gd" id="1_q7cdw"]
+
+[node name="WeekScreen" type="Control" unique_id=1494010549]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_q7cdw")
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=695452426]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer" unique_id=1015731934]
+layout_mode = 2
+
+[node name="WeekLabel" type="Label" parent="CenterContainer/VBoxContainer" unique_id=1104832176]
+layout_mode = 2
+
+[node name="ClassLabel" type="Label" parent="CenterContainer/VBoxContainer" unique_id=233664100]
+layout_mode = 2
+
+[node name="MatchesLabel" type="Label" parent="CenterContainer/VBoxContainer" unique_id=633966976]
+layout_mode = 2
+text = "Matches this week: -"
+
+[node name="TrainingsLabel" type="Label" parent="CenterContainer/VBoxContainer" unique_id=943797839]
+layout_mode = 2
+text = "Trainings available: -"
+
+[node name="AttributesLabel" type="RichTextLabel" parent="CenterContainer/VBoxContainer" unique_id=1484350938]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+fit_content = true
+
+[node name="OpenTrainingButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=2130709110]
+layout_mode = 2
+text = "Choose trainings"
+
+[node name="ConfirmWeekButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1649405444]
+layout_mode = 2
+text = "Confirm week"
+
+[node name="LogLabel" type="RichTextLabel" parent="CenterContainer/VBoxContainer" unique_id=26756004]
+layout_mode = 2
+text = "Log"

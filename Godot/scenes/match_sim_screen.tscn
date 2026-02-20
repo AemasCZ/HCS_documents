@@ -1,0 +1,45 @@
+[gd_scene format=3 uid="uid://pk5m8yqa5qeq"]
+
+[ext_resource type="Script" uid="uid://b5lu1wddkkrkw" path="res://scenes/match_sim_screen.gd" id="1_1o02j"]
+
+[node name="MatchSimScreen" type="Control" unique_id=248065137]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_1o02j")
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=390265961]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer" unique_id=1915034770]
+custom_minimum_size = Vector2(900, 0)
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="CenterContainer/VBoxContainer" unique_id=1000521882]
+custom_minimum_size = Vector2(900, 40)
+layout_mode = 2
+text = "Simulace zápasu"
+
+[node name="ScoreLabel" type="Label" parent="CenterContainer/VBoxContainer" unique_id=580480036]
+custom_minimum_size = Vector2(900, 40)
+layout_mode = 2
+text = "Team Blue 0 – 1 Team Red"
+
+[node name="InfoLabel" type="Label" parent="CenterContainer/VBoxContainer" unique_id=645301634]
+layout_mode = 2
+text = "5 šancí • šance na gól = Shooting%"
+
+[node name="ChancesLabel" type="RichTextLabel" parent="CenterContainer/VBoxContainer" unique_id=1005714422]
+custom_minimum_size = Vector2(900, 260)
+layout_mode = 2
+text = "...
+"
+
+[node name="BackButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1602024303]
+layout_mode = 2
+text = "Zpět"
