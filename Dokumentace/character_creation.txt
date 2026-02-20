@@ -1,94 +1,83 @@
 character_creation.gd — Dokumentace
+
 Přehled
-Scéna pro vytvoření nového hráče na začátku hry. Hráč zadá jméno a vybere classu (archetyp). Po potvrzení se inicializuje nová hra a přechází se na týdenní obrazovku.
+Scéna pro vytvoření nového hráče na začátku hry. Hráč zadá jméno, vybere classu (archetyp) a tým. Po potvrzení se inicializuje nová hra a přechází se na týdenní obrazovku.
 
-Scéna
-●      Soubor: character_creation.gd
-●      Typ uzlu: Control
-●      Stav: 🟢 Implementováno (základní verze)
+Soubor
+●      Soubor: character_creation.gd
+●      Typ uzlu: Control
+●      Stav: 🟢 Implementováno (MVP verze)
 
-Node struktura (předpokládaná)
+Node struktura
 Control
 └── CenterContainer
-    └── VBoxContainer
-        ├── NameInput       (LineEdit)
-        ├── ClassSelect     (OptionButton)
-        └── StartButton     (Button)
- 
+    └── VBoxContainer
+        ├── TitleLabel      (Label)
+        ├── NameInput       (LineEdit)
+        ├── ClassSelect     (OptionButton)
+        ├── TeamSelect      (OptionButton)
+        └── StartButton     (Button)
 
 Vstupy
-Zdroj
-Typ
-Popis
-NameInput.text
-String
-Jméno hráče zadané uživatelem
-ClassSelect.selected
-int
-Index vybrané classy z OptionButton
+Zdroj                  Typ     Popis
+NameInput.text         String  Jméno hráče zadané uživatelem
+ClassSelect.selected   int     Index vybrané classy z OptionButton
+TeamSelect.selected    int     Index vybraného týmu z OptionButton
 
 Výstupy
-Cíl
-Metoda / Signál
-Popis
-GameManager
-new_game(player_name, selected_class)
-Inicializace nové hry s daty hráče
-GameManager
-goto_week_screen()
-Přechod na týdenní obrazovku
+Cíl           Metoda / Signál                           Popis
+GameManager   new_game(player_name, class, team)        Inicializace nové hry s daty hráče
+GameManager   goto_week_screen()                        Přechod na týdenní obrazovku
 
 Logika
-	1.	_ready() — naplní ClassSelect ze statického pole CLASSES, připojí signál pressed na tlačítko
-	2.	_populate_classes() — vymaže OptionButton a znovu ho naplní ze CLASSES
-	3.	_on_start_pressed() — přečte jméno (fallback na "Player" pokud je prázdné), přečte vybranou classu, zavolá GameManager.new_game() a pak GameManager.goto_week_screen()
+1.  _ready() — naplní ClassSelect ze statického pole CLASSES, naplní TeamSelect z PlayerData.TEAM_NAMES, připojí signál pressed na tlačítko
+2.  _populate_classes() — vymaže OptionButton a znovu ho naplní ze CLASSES
+3.  _populate_teams() — vymaže TeamSelect a naplní ho z PlayerData.TEAM_NAMES
+4.  _on_start_pressed() — přečte jméno (fallback na "Player" pokud je prázdné), přečte vybranou classu, přečte vybraný tým, zavolá GameManager.new_game() a pak GameManager.goto_week_screen()
 
 Dostupné classy (CLASSES konstanta)
 "Sniper"
 "Playmaker"
 "Two-Way Forward"
 "Defensive Forward"
- 
-Odpovídá definici v HCS Bible — Tvorba hráče & Classy.
+
+Dostupné týmy (PlayerData.TEAM_NAMES)
+14 týmů České ligy — viz PlayerData.gd (HC Pardubice, HC Karlovy Vary, ..., HC Litvínov).
+Každý tým má přiřazené overall rating (PlayerData.TEAMS slovník).
 
 Edge Cases
-Situace
-Chování
-Prázdné jméno
-Automaticky nastaven fallback "Player"
-Žádná classa nevybrána
-OptionButton defaultně vybírá index 0 (Sniper) — Godot výchozí chování
-GameManager neexistuje
-Runtime error — GameManager musí být Autoload singleton
+Situace                    Chování
+Prázdné jméno              Automaticky nastaven fallback "Player"
+Žádná classa nevybrána     OptionButton defaultně vybírá index 0 (Sniper) — Godot výchozí chování
+Žádný tým nevybrán         OptionButton defaultně vybírá index 0 (HC Pardubice) — Godot výchozí chování
+GameManager neexistuje     Runtime error — GameManager musí být Autoload singleton
 
 Závislosti
-●      GameManager (Autoload singleton) — musí exposovat:
-○      new_game(player_name: String, selected_class: String) -> void
-○      goto_week_screen() -> void
+●      GameManager (Autoload singleton) — musí exposovat:
+       ○      new_game(player_name: String, selected_class: String, player_team: String) -> void
+       ○      goto_week_screen() -> void
+●      PlayerData (class_name, přístupná globálně) — musí exposovat:
+       ○      TEAM_NAMES: Array[String]
 
 Co scéna NEDĚLÁ (zatím)
-●      ❌ Pevné volby (Původ, Povaha, Sportovní zázemí) — viz bible, připraveno do budoucna
-●      ❌ Draftové eventy (5 kol mládežnického draftu) — viz bible, připraveno do budoucna
-●      ❌ Validace jména (délka, zakázané znaky)
-●      ❌ Vizuální preview classy (popis, ikona, startovní atributy)
+●      ❌ Pevné volby (Původ, Povaha, Sportovní zázemí) — viz bible, připraveno do budoucna
+●      ❌ Draftové eventy (5 kol mládežnického draftu) — viz bible, připraveno do budoucna
+●      ❌ Validace jména (délka, zakázané znaky)
+●      ❌ Vizuální preview classy (popis, ikona, startovní atributy)
+●      ❌ Vizuální preview týmu (overall rating, logo)
 
 Napojení na bibli
-Biblický prvek
-Stav v kódu
-4 classy (Sniper, Playmaker, Two-Way, Defensive)
-✅ Implementováno
-Jméno hráče
-✅ Implementováno
-Pevné volby (Původ, Povaha, Zázemí)
-❌ Chybí
-Draftové eventy
-❌ Chybí
-Škálování atributů podle země/ligy
-❌ Chybí
+Biblický prvek                          Stav v kódu
+4 classy (Sniper, Playmaker, Two-Way, Defensive)   ✅ Implementováno
+Jméno hráče                             ✅ Implementováno
+Výběr týmu                              ✅ Implementováno
+Pevné volby (Původ, Povaha, Zázemí)     ❌ Chybí
+Draftové eventy                         ❌ Chybí
+Škálování atributů podle země/ligy      ❌ Chybí
 
 Navržená budoucí rozšíření
-	1.	Přidat sekci pevných voleb (3 OptionButton nebo card-based UI)
-	2.	Přidat popis classy zobrazený po výběru (tooltip nebo panel vpravo)
-	3.	Přidat draft event flow jako samostatnou scénu spouštěnou po new_game()
-	4.	Validace délky jména (doporučeno max 24 znaků)
- 
+1.  Přidat sekci pevných voleb (3 OptionButton nebo card-based UI)
+2.  Přidat popis classy zobrazený po výběru (tooltip nebo panel vpravo)
+3.  Přidat zobrazení overall ratingu týmu po výběru
+4.  Přidat draft event flow jako samostatnou scénu spouštěnou po new_game()
+5.  Validace délky jména (doporučeno max 24 znaků)

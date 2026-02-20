@@ -1,163 +1,150 @@
 # GameManager.gd — Dokumentace
- 
+
 ## Přehled
- 
+
 Globální singleton (Autoload) který řídí celý životní cyklus hry. Drží referenci na `player_data`, inicializuje novou hru a zajišťuje přechody mezi scénami. Jakýkoliv jiný skript v projektu může přistupovat k datům hráče přes `GameManager.player_data`.
- 
+
 ---
- 
+
 ## Soubor
- 
+
 - Soubor: `GameManager.gd`
 - Typ uzlu: `Node`
 - Registrace: Autoload singleton (nutno nastavit v Project Settings → Autoload)
-- Stav: 🟢 Implementováno (rozšířená verze)
- 
+- Stav: 🟢 Implementováno
+
 ---
- 
+
 ## Konstanty — scény
- 
-| Konstanta                  | Cesta                                    |
+
+| Konstanta                  | Cesta                                    |
 |---------------------------|------------------------------------------|
-| SCENE_CHARACTER_CREATION  | res://scenes/character_creation.tscn    |
-| SCENE_WEEK_SCREEN         | res://scenes/week_screen.tscn           |
-| SCENE_TRAINING_SCREEN     | res://scenes/training_screen.tscn       |
-| SCENE_WEEK_PREVIEW_SCREEN | res://scenes/week_preview_screen.tscn   |
-| SCENE_MATCH_SIM_SCREEN    | res://scenes/match_sim_screen.tscn      |
- 
+| SCENE_CHARACTER_CREATION  | res://scenes/character_creation.tscn    |
+| SCENE_WEEK_SCREEN         | res://scenes/week_screen.tscn           |
+| SCENE_TRAINING_SCREEN     | res://scenes/training_screen.tscn       |
+| SCENE_MATCH_SIM_SCREEN    | res://scenes/match_sim_screen.tscn      |
+
 ---
- 
+
 ## Proměnné
- 
-| Název                       | Typ        | Výchozí | Popis                                                                 |
+
+| Název                       | Typ        | Výchozí | Popis                                                                 |
 |----------------------------|------------|---------|-----------------------------------------------------------------------|
-| player_data                | PlayerData | null    | Reference na aktuální data hráče. null dokud není zavolán new_game() |
-| week_preview_total_matches | int        | 0       | Celkový počet zápasů v aktuálním týdnu (persist mezi scénami)        |
-| week_preview_played_matches| int        | 0       | Počet již odehraných zápasů (persist mezi scénami)                   |
-| match_sim_shooting_skill   | int        | 1       | Shooting skill předaný do MatchSimScreen před přechodem scény        |
- 
-⚠️ Poznámka: Proměnné `week_preview_*` a `match_sim_shooting_skill` slouží jako dočasný přenos stavu mezi scénami, protože `change_scene_to_file()` reloaduje scénu a lokální proměnné se ztrácejí.
- 
+| player_data                | PlayerData | null    | Reference na aktuální data hráče. null dokud není zavolán new_game() |
+| match_sim_shooting_skill   | int        | 1       | Shooting skill předaný do MatchSimScreen před přechodem scény        |
+
+⚠️ Poznámka: `match_sim_shooting_skill` slouží jako dočasný přenos stavu mezi scénami, protože `change_scene_to_file()` reloaduje scénu a lokální proměnné se ztrácejí. WeekScreen persist stav (počty zápasů) ukládá do GameManager meta klíčů — GameManager.gd samotný tyto proměnné nedrží.
+
 ---
- 
+
 ## Metody
- 
-### `new_game(player_name: String, player_class: String) -> void`
- 
+
+### `new_game(player_name: String, player_class: String, player_team: String = "") -> void`
+
 Inicializuje novou hru. Vytvoří instanci `PlayerData` a zavolá její `setup()`.
- 
-| Parametr     | Typ    | Popis                                         |
+
+| Parametr     | Typ    | Popis                                         |
 |-------------|--------|-----------------------------------------------|
 | player_name | String | Jméno hráče (po strip_edges z character_creation) |
-| player_class| String | Vybraná classa (např. "Sniper")               |
- 
+| player_class| String | Vybraná classa (např. "Sniper")               |
+| player_team | String | Vybraný tým (např. "HC Pardubice"), default "" |
+
 ⚠️ Proměnná pojmenována `player_name` (ne `name`) — Godot Node má vlastní property `name`, kolize by způsobila chybu.
- 
+
 ---
- 
+
 ### `change_scene(scene_path: String) -> void`
- 
+
 Interní helper. Zavolá `get_tree().change_scene_to_file(scene_path)`.
- 
+
 ---
- 
+
 ### `goto_character_creation() -> void`
 Přechod na obrazovku tvorby hráče.
- 
+
 ### `goto_week_screen() -> void`
 Přechod na týdenní obrazovku.
- 
+
 ### `goto_training_screen() -> void`
 Přechod na obrazovku tréninku.
- 
-### `goto_week_preview_screen() -> void`
-Přechod na WeekPreviewScreen (přehled zápasů týdne).
- 
+
 ### `goto_match_sim_screen(shooting_skill: int) -> void`
 Uloží `shooting_skill` (clamped 1–99) do `match_sim_shooting_skill` a přejde na MatchSimScreen.
- 
-| Parametr      | Typ | Popis                              |
+
+| Parametr      | Typ | Popis                              |
 |--------------|-----|------------------------------------|
-| shooting_skill | int | Shooting atribut hráče (1–99)   |
- 
-### `reset_week_preview_state() -> void`
-Resetuje dočasný stav týdenního přehledu:
-- `week_preview_total_matches = 0`
-- `week_preview_played_matches = 0`
-- `match_sim_shooting_skill = 1`
- 
+| shooting_skill | int | Shooting atribut hráče (1–99)   |
+
 ---
- 
+
 ## Závislosti
- 
-| Závislost   | Typ             | Popis                                                              |
+
+| Závislost   | Typ             | Popis                                                              |
 |------------|-----------------|---------------------------------------------------------------------|
 | PlayerData.gd | Resource skript | Preload přes PLAYER_DATA_SCRIPT, musí existovat na res://resources/PlayerData.gd |
-| SceneTree  | Godot built-in  | Pro přechody scén                                                   |
- 
+| SceneTree  | Godot built-in  | Pro přechody scén                                                   |
+
 ---
- 
+
 ## Edge Cases
- 
-| Situace                                  | Chování                                                              |
+
+| Situace                                  | Chování                                                              |
 |-----------------------------------------|----------------------------------------------------------------------|
-| Přístup na player_data před new_game()  | player_data je null → ostatní scény musí počítat s null checkem      |
-| Neexistující cesta scény                | Godot vyhodí runtime error při change_scene_to_file()                |
-| Volání new_game() opakovaně             | Přepíše stávající player_data bez varování — nutno zvážit reset flow |
+| Přístup na player_data před new_game()  | player_data je null → ostatní scény musí počítat s null checkem      |
+| Neexistující cesta scény                | Godot vyhodí runtime error při change_scene_to_file()                |
+| Volání new_game() opakovaně             | Přepíše stávající player_data bez varování — nutno zvážit reset flow |
 | goto_match_sim_screen() bez předchozího nastavení | shooting_skill je clamped, takže min. hodnota 1 je vždy platná |
- 
+
 ---
- 
+
 ## Tok dat — jak GameManager zapadá do hry
- 
+
+```
 character_creation.gd
-    → GameManager.new_game(name, class)           # vytvoří PlayerData
-    → GameManager.goto_week_screen()              # přechod na week_screen
- 
+    → GameManager.new_game(name, class, team)     # vytvoří PlayerData
+    → GameManager.goto_week_screen()              # přechod na week_screen
+
 week_screen.gd
-    → GameManager.player_data                     # čte data hráče
-    → GameManager.goto_training_screen()          # přechod na training
-    → GameManager.goto_match_sim_screen(skill)    # přechod na simulaci zápasu
- 
-week_preview_screen.gd
-    → GameManager.player_data                     # čte data hráče
-    → GameManager.week_preview_total_matches      # persist stavu
-    → GameManager.week_preview_played_matches     # persist stavu
-    → GameManager.goto_week_screen()              # návrat po dokončení týdne
- 
+    → GameManager.player_data                     # čte data hráče
+    → GameManager.goto_training_screen()          # přechod na training
+    → GameManager.set_meta / get_meta             # persist stav zápasů
+    → get_tree().change_scene_to_file(match_sim)  # přechod na simulaci zápasu
+
 match_sim_screen.gd
-    → GameManager.match_sim_shooting_skill        # čte shooting skill
-    → change_scene na week_screen nebo week_preview_screen
- 
+    → GameManager.get_meta("match_sim_shooting_skill")  # čte shooting skill
+    → GameManager.set_meta("ws_returned_from_match", true)
+    → change_scene na week_screen
+
 training_screen.gd
-    → GameManager.player_data                     # čte + modifikuje data hráče
-    → GameManager.goto_week_screen()              # návrat zpět
- 
+    → GameManager.player_data                     # čte + modifikuje data hráče
+    → GameManager.goto_week_screen()              # návrat zpět
+```
+
 ---
- 
+
 ## Co GameManager NEDĚLÁ (zatím)
- 
+
 - ❌ Ukládání a načítání hry (Save/Load systém)
 - ❌ Správa sezóny / týdne (časová logika je v PlayerData a week_screen)
 - ❌ Správa více hráčů nebo týmů
 - ❌ Error handling při selhání načtení scény
- 
+
 ---
- 
+
 ## Napojení na bibli
- 
-| Biblický prvek                                    | Stav                                      |
+
+| Biblický prvek                                    | Stav                                      |
 |--------------------------------------------------|-------------------------------------------|
-| Jeden hráč po celou kariéru                       | ✅ player_data je single instance         |
-| Classa jako vstup do setupu                       | ✅ předána do PlayerData.setup()          |
-| Navigace mezi herními fázemi (tréninky, zápasy)  | ✅ implementováno včetně match_sim scény  |
- 
+| Jeden hráč po celou kariéru                       | ✅ player_data je single instance         |
+| Classa jako vstup do setupu                       | ✅ předána do PlayerData.setup()          |
+| Tým jako vstup do setupu                          | ✅ předán do PlayerData.setup()           |
+| Navigace mezi herními fázemi (tréninky, zápasy)  | ✅ implementováno včetně match_sim scény  |
+
 ---
- 
+
 ## Navržená budoucí rozšíření
- 
+
 1. Přidat save_game() a load_game() metody
 2. Přidat reset / new_game guard (dialog "Opravdu chceš začít znovu?")
 3. Přidat navigaci na budoucí scény: goto_passive_tree(), goto_draft()
 4. Zvážit null guard helper: has_player() -> bool pro ostatní scény
-5. Zvážit nahrazení dočasného persist stavu (week_preview_*) za čistší řešení — např. Dictionary nebo samostatný Resource

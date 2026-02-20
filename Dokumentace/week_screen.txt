@@ -18,6 +18,7 @@ tréninkového plánu. Je centrálním hubem mezi TrainingScreen a MatchSimScree
 
 ## Node struktura
 
+```
 Control
 └── CenterContainer
     └── VBoxContainer
@@ -29,6 +30,7 @@ Control
         ├── OpenTrainingButton  (Button)
         ├── ConfirmWeekButton   (Button)
         └── LogLabel            (RichTextLabel)
+```
 
 ---
 
@@ -87,7 +89,6 @@ Detekuje zda jsme v novém týdnu nebo jen reloadujeme scénu.
 - Nový týden: vygeneruje matches_this_week = randi_range(1, 3), uloží do meta
 - Stejný týden: načte uložené hodnoty z meta
 - trainings_available = clampi(4 - matches_this_week, 0, 4)
-  ⚠️ Minimum je 0, ne 1 — viz technický dluh níže
 
 ### _apply_return_from_match_if_needed()
 Pokud meta "ws_returned_from_match" = true:
@@ -106,23 +107,13 @@ Voláno po kliknutí na "Train" (tj. všechny zápasy jsou odehrány).
 
 ### _refresh_ui()
 Přepíše všechny labely aktuálním stavem.
-- matches_remaining > 0 → text = "Simulate match"
-- matches_remaining <= 0 → text = "Train"
+- ClassLabel zobrazuje: jméno hráče, název týmu, classa (3 řádky)
+- matches_remaining > 0 → tlačítko = "Simulate match"
+- matches_remaining <= 0 → tlačítko = "Train"
 
 ### _on_confirm_week_pressed()
 - Pokud matches_remaining <= 0: volá _end_week_apply_training_and_advance()
 - Jinak: předá shooting skill přes meta a přejde na MatchSimScreen
-
----
-
-## Klíčová změna oproti předchozí verzi
-
-| Co | Stará verze | Nová verze |
-|---|---|---|
-| trainings_available | maxi(4 - matches, 1) — min 1 | clampi(4 - matches, 0, 4) — min 0 |
-| Počet aplikovaných tréninkových slotů | vždy range(4) | range(trainings_available) — závisí na zápasech |
-
-Tréninkový XP gain je nyní přímo svázán s počtem zápasů v týdnu.
 
 ---
 
@@ -154,7 +145,6 @@ Tréninkový XP gain je nyní přímo svázán s počtem zápasů v týdnu.
 - ❌ Zobrazení výsledků zápasů (výhra/prohra, skóre) přímo na WeekScreen
 - ❌ Rozlišení výsledku tréninku (kolik level-upů proběhlo) v UI
 - ❌ Validace tréninkového plánu před koncem týdne
-- ❌ Přechod na WeekPreviewScreen (scéna existuje ale není zapojena do flow)
 
 ---
 
@@ -173,9 +163,8 @@ Tréninkový XP gain je nyní přímo svázán s počtem zápasů v týdnu.
 
 ## Technický dluh
 
-1. [HIGH] trainings_available může být 0 — bible říká minimum je vždy 1 trénink.
-   Zvažit návrat k maxi(4 - matches, 1) nebo vědomě změnit pravidlo v bibli.
-2. [MEDIUM] _generate_new_week() existuje ale není nikde volána — mrtvý kód, lze smazat.
+1. [HIGH] trainings_available může být 0 — bible říká minimum je vždy 1 trénink. Zvažit návrat k maxi(4 - matches, 1) nebo vědomě změnit pravidlo v bibli.
+2. [MEDIUM] Metoda _generate_new_week() existuje v kódu ale není nikde volána — mrtvý kód, lze smazat.
 3. [LOW] Shooting je jediný atribut vstupující do zápasové simulace.
 
 ---
@@ -183,6 +172,5 @@ Tréninkový XP gain je nyní přímo svázán s počtem zápasů v týdnu.
 ## Navržená budoucí rozšíření
 
 1. Zobrazit výsledek tréninku po "Train" — které atributy se zvedlo a o kolik
-2. Zapojit WeekPreviewScreen jako alternativní flow
-3. Přidat přehled výsledků zápasů (výhra/prohra, skóre)
-4. Přidat vliv dalších atributů na zápasovou simulaci
+2. Přidat přehled výsledků zápasů (výhra/prohra, skóre)
+3. Přidat vliv dalších atributů na zápasovou simulaci
