@@ -1,0 +1,160 @@
+PlayerData.gd — Dokumentace
+Přehled
+Centrální datový resource hry. Drží veškerá data jednoho hráče — identitu, atributy, XP, tréninkový plán a časovou progresi. Přistupuje se k němu výhradně přes GameManager.player_data. Neobsahuje žádnou UI logiku.
+ 
+Soubor
+●	Soubor: res://resources/PlayerData.gd
+●	Typ: Resource (class_name PlayerData)
+●	Stav: 🟢 Implementováno (MVP verze)
+ 
+Konstanty
+Časová struktura
+Konstanta	Hodnota	Popis
+WEEKS_PER_SEASON	26	Počet týdnů v sezóně
+WEEKS_PER_MONTH	4	Počet týdnů v měsíci
+MONTHS_PER_SEASON	6	Počet měsíců v sezóně
+Atributy
+Konstanta	Hodnota	Popis
+ATTRIBUTE_MIN	1	Minimální hodnota atributu
+ATTRIBUTE_MAX	99	Maximální hodnota atributu
+BASE_ATTR_VALUE	25	Výchozí hodnota při inicializaci
+XP_PER_LEVEL	3	Kolik XP = +1 atribut
+Skupiny atributů
+Konstanta	Hodnota
+GROUP_TECH	"TECH"
+GROUP_MENTAL	"MENTAL"
+GROUP_PHYS	"PHYS"
+ 
+Atributy — kompletní seznam
+TECH (trénovatelné v MVP)
+Klíč	Konstanta
+"shooting"	ATTR_SHOOTING
+"passing"	ATTR_PASSING
+"puck_control"	ATTR_PUCK_CONTROL
+"first_touch"	ATTR_FIRST_TOUCH
+"defence"	ATTR_DEFENCE
+MENTAL (v MVP netrénovatelné)
+Klíč	Konstanta
+"positioning"	ATTR_POSITIONING
+"leadership"	ATTR_LEADERSHIP
+"discipline"	ATTR_DISCIPLINE
+"anticipation"	ATTR_ANTICIPATION
+"creativity"	ATTR_CREATIVITY
+PHYS (připraveno, v MVP netrénovatelné)
+Klíč	Konstanta
+"speed"	ATTR_SPEED
+"acceleration"	ATTR_ACCELERATION
+"strength"	ATTR_STRENGTH
+"agility"	ATTR_AGILITY
+"stamina"	ATTR_STAMINA
+ 
+Classy a startovní hodnoty (TEST baseline)
+Classa	Startovní hodnota všech atributů
+"Sniper"	10
+"Playmaker"	11
+"Two-Way Forward"	12
+"Defensive Forward"	13
+⚠️ Toto jsou testovací hodnoty pro ověření výběru classy. Finální diferenciace atributů podle classy není zatím implementována.
+ 
+Runtime proměnné
+Proměnná	Typ	Popis
+player_name	String	Jméno hráče
+player_class	String	Vybraná classa
+current_week	int	Aktuální týden (1–26)
+current_month	int	Aktuální měsíc (1–6)
+current_season	int	Aktuální sezóna (roste donekonečna)
+attr_values	Dictionary	Klíč → aktuální hodnota atributu (int)
+attr_xp	Dictionary	Klíč → aktuální XP atributu (int)
+training_plan	Array[String]	4 sloty, každý = klíč atributu
+ 
+Metody
+Setup & inicializace
+setup(p_name: String, p_class: String) -> void
+Hlavní inicializace nového hráče. Volá se z GameManager.new_game().
+Flow:
+1.	Uloží jméno a classu
+2.	Resetuje časovou progresi na týden 1, měsíc 1, sezóna 1
+3.	_initialize_attributes() — nastaví všechny atributy na BASE_ATTR_VALUE (25), XP na 0
+4.	_apply_class_baseline() — přepíše hodnoty podle classy (TEST hodnoty)
+5.	_initialize_training_plan() — nastaví 4 sloty na shooting jako výchozí
+_initialize_training_plan() -> void
+Výchozí plán = 4× ATTR_SHOOTING. Hráč ho mění na TrainingScreen.
+ 
+Atributové API
+get_attr_value(key: String) -> int
+Vrátí aktuální hodnotu atributu. Fallback: BASE_ATTR_VALUE pokud klíč neexistuje.
+set_attr_value(key: String, value: int) -> void
+Nastaví hodnotu atributu s clampem na [ATTRIBUTE_MIN, ATTRIBUTE_MAX].
+get_attr_xp(key: String) -> int
+Vrátí aktuální XP atributu. Fallback: 0.
+set_attr_xp(key: String, value: int) -> void
+Nastaví XP atributu. Minimálně 0 (negativa nejsou povolena).
+add_xp_and_resolve(key: String, amount: int) -> int
+Přidá XP a automaticky provede level-upy. Vrátí počet level-upů (pro UI feedback).
+Flow:
+1.	Přidá amount k attr_xp[key]
+2.	Dokud xp >= XP_PER_LEVEL (3): odečte 3 XP, zvýší atribut o 1
+3.	Pokud atribut dosáhl ATTRIBUTE_MAX (99): XP se smaže, loop se ukončí
+4.	Vrátí celkový počet level-upů
+ 
+Časová progrese
+advance_week() -> void
+Posune hru o jeden týden. Volá se z WeekScreen.
+Flow:
+1.	current_week += 1
+2.	Pokud překročí WEEKS_PER_SEASON (26): reset na 1, current_season += 1
+3.	Přepočítá current_month z aktuálního týdne (floor((week-1)/4)+1, cap na 6)
+ 
+Utility
+get_available_trainings(matches_this_week: int) -> int
+Vrátí počet dostupných tréninkových slotů pro daný týden.
+Vzorec: max(4 - matches_this_week, 1)
+Zápasy tento týden	Dostupné tréninky
+0	4
+1	3
+2	2
+3	1
+4+	1 (minimum)
+Odpovídá HCS Bible — Core Loop: tréninky a zápasy se navzájem omezují, minimum je vždy 1 trénink.
+ 
+Edge Cases
+Situace	Chování
+Atribut na hodnotě 99, přidáme XP	XP se smaže, level-up se neprovede
+get_attr_value s neznámým klíčem	Vrátí BASE_ATTR_VALUE (25) — safe fallback
+add_xp_and_resolve s amount = 0	Vrátí 0 level-upů, žádná změna
+advance_week() na konci sezóny	Reset týdne na 1, sezóna +1, měsíc přepočítán správně
+Záporné XP	maxi(value, 0) zajišťuje minimum 0
+ 
+Závislosti
+Žádné externí závislosti. PlayerData je čistý datový objekt — neví nic o UI ani o GameManageru.
+ 
+Co PlayerData NEDĚLÁ (zatím)
+●	❌ Diferenciace startovních atributů podle classy (jen testovací flat hodnoty)
+●	❌ Věkový model (věk hráče, fáze kariéry, longevity) — viz HCS Bible — Věkový model
+●	❌ Pasivní strom (skill pointy, uzly) — viz HCS Bible — Pasivní strom
+●	❌ Kariérní cesty (liga, tým, přestupy)
+●	❌ Serialization / uložení na disk
+●	❌ Signály při změně atributů (pro reaktivní UI)
+ 
+Napojení na bibli
+Biblický prvek	Stav
+15 atributů ve 3 skupinách (TECH/MENTAL/PHYS)	✅ Implementováno
+4 classy	✅ Implementováno
+Tréninkový plán — 4 sloty	✅ Implementováno
+XP systém (3 XP = +1 atribut)	✅ Implementováno
+Cap atributů na 99	✅ Implementováno
+Týdenní časová struktura (26 týdnů, 6 měsíců)	✅ Implementováno
+Tréninky vs. zápasy (max 4, min 1)	✅ Implementováno
+Věkový model	❌ Chybí
+Pasivní strom	❌ Chybí
+Kariérní cesty	❌ Chybí
+ 
+Navržená budoucí rozšíření
+1.	Přidat age: int a logiku věkového modelu (3 fáze kariéry)
+2.	Přidat passive_points: int a unlocked_nodes: Array[String] pro pasivní strom
+3.	Přidat signál attribute_changed(key, old_val, new_val) pro reaktivní UI
+4.	Implementovat skutečnou diferenciaci atributů podle classy (ne flat testovací hodnoty)
+5.	Přidat serialize() -> Dictionary a deserialize(data: Dictionary) pro save systém
+
+playerdata
+ppl

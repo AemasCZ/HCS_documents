@@ -1,0 +1,90 @@
+match_sim_screen.gd — Dokumentace
+Přehled
+Obrazovka simulace zápasu. Animovaně zobrazí 5 střeleckých šancí hráče, přičemž soupeř automaticky skóruje 1 gól. Výsledek (počet gólů) závisí na hodnotě atributu Shooting. Po dokončení simulace hráč klikne Back a vrátí se na WeekScreen.
+ 
+Soubor
+•	Soubor: res://scenes/match_sim_screen.tscn + match_sim_screen.gd
+•	Typ uzlu: Control
+•	Stav: 🟢 Implementováno (MVP verze)
+ 
+Node struktura
+Control └── CenterContainer └── VBoxContainer (custom_minimum_size: 900px) ├── TitleLabel (Label) ├── ScoreLabel (Label) ├── InfoLabel (Label) ├── ChancesLabel (RichTextLabel) └── BackButton (Button)
+ 
+Vstupy
+Zdroj	Typ	Popis
+GameManager.get_meta("match_sim_shooting_skill", 1)	int	Shooting skill hráče — předán z WeekScreen před přechodem
+ 
+Výstupy
+Cíl	Metoda	Popis
+GameManager.set_meta("ws_returned_from_match", true)	meta flag	Signalizuje WeekScreenu že zápas byl odehrán
+SceneTree	change_scene_to_file("week_screen.tscn")	Návrat na WeekScreen po kliknutí Back
+ 
+Lokální proměnné
+Proměnná	Typ	Popis
+shooting_skill	int	Načteno z meta, clamped 1–99
+_blue_goals	int	Počet gólů hráčova týmu (inicializován na 0)
+_red_goals	int	Počet gólů soupeře (inicializován na 1 — soupeř skóruje vždy automaticky)
+ 
+Simulační mechanika
+Soupeřův gól
+Soupeř vždy automaticky dá 1 gól bez simulace. _red_goals je nastaven na 1 hned při inicializaci.
+Hráčovy šance
+5 šancí, každá s prodlevou 0.5s (animované postupně přes await).
+Pro každou šanci: randf() * 100.0 < float(shooting_skill)
+Shooting	Pravděpodobnost gólu
+10	10%
+25	25%
+50	50%
+75	75%
+99	99%
+Výsledek každé šance je zobrazen v ChancesLabel jako "Šance #N — GOL" nebo "Šance #N — NIC".
+ 
+Logika — flow
+_ready()
+1.	Nastaví TitleLabel, vyčistí ChancesLabel
+2.	Skryje a deaktivuje BackButton (zobrazí se až po skončení simulace)
+3.	Načte shooting_skill z GameManager meta, clampuje 1–99
+4.	Inicializuje skóre (0:1)
+5.	Zobrazí info text s shooting procentem
+6.	Spustí _run_simulation()
+_run_simulation()
+Async funkce. Iteruje 5× přes await get_tree().create_timer(0.5).timeout, vyhodnocuje každou šanci, aktualizuje skóre a ChancesLabel. Po posledním kole zobrazí "Done. Click Back to return." a zpřístupní BackButton.
+_on_back_pressed()
+1.	Nastaví meta "ws_returned_from_match" na true (WeekScreen si tím zjistí že přicházíme z MatchSim)
+2.	Přejde na week_screen.tscn
+ 
+Edge Cases
+Situace	Chování
+shooting_skill meta neexistuje	Fallback na hodnotu 1 (1% šance na gól)
+Hráč klikne Back před dokončením simulace	Není možné — BackButton je disabled až do konce
+Shooting = 99	99% šance na gól, ale nikdy 100% (randf může vrátit 0.99+)
+0 ze 5 šancí = gól	Validní výsledek — Blue 0:1 Red
+5 ze 5 šancí = gól	Validní výsledek — Blue 5:1 Red
+ 
+Závislosti
+Závislost	Popis
+GameManager (Autoload)	Čtení shooting_skill z meta, zápis returned_from_match flagu
+WeekScreen	Cílová scéna po Back, konzumuje ws_returned_from_match flag
+ 
+Co scéna NEDĚLÁ (zatím)
+•	❌ Vliv jiných atributů než Shooting (Passing, Defence, Agility...)
+•	❌ Výsledek zápasu nemá vliv na žádné herní metriky (výhra/prohra je jen vizuální)
+•	❌ Soupeřova síla není proměnná — vždy 1 automatický gól
+•	❌ Výsledek se nezapisuje do žádné statistiky nebo career history
+•	❌ Animace nebo vizuální efekty nad textovým výpisem
+ 
+Napojení na bibli
+Biblický prvek	Stav
+Zápas jako součást týdenního cyklu	✅ Implementováno
+Shooting jako klíčový atribut útočníka	✅ Shooting = % šance na gól
+Výsledek zápasu ovlivněn atributy	⚠️ Jen Shooting, ostatní atributy zatím nevstupují
+ 
+Technický dluh
+1.	[LOW] Výsledek zápasu (výhra/prohra/remíza) by měl být zaznamenán — zatím se jen zobrazí a zahodí
+ 
+Navržená budoucí rozšíření
+1.	Přidat vliv Passing, Defence a dalších atributů na výsledek
+2.	Přidat proměnlivou sílu soupeře (závisí na lize / úrovni týmu)
+3.	Zaznamenávat výsledky zápasů do career statistik (góly, asistence, výhry)
+4.	Přidat výraznější vizuální feedback pro gól vs. zmeškanou šanci
+

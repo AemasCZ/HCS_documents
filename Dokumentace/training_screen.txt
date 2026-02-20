@@ -1,0 +1,134 @@
+training_screen.gd — Dokumentace
+Přehled
+Obrazovka pro nastavení tréninkového plánu hráče. Hráč si vybere až 4 TECH atributy (jeden per slot) pomocí OptionButtonů. Plán se uloží přímo do PlayerData.training_plan a scéna se vrátí na WeekScreen.
+
+Soubor
+	•	Soubor: res://scenes/training_screen.tscn + training_screen.gd
+	•	Typ uzlu: Control
+	•	Stav: 🟢 Implementováno (MVP verze)
+
+Node struktura
+Control └── CenterContainer └── VBoxContainer ├── TitleLabel (Label) ├── SlotsGrid (GridContainer, columns=2) │ ├── Slot1Label (Label) │ ├── Slot1Option (OptionButton) │ ├── Slot2Label (Label) │ ├── Slot2Option (OptionButton) │ ├── Slot3Label (Label) │ ├── Slot3Option (OptionButton) │ ├── Slot4Label (Label) │ └── Slot4Option (OptionButton) ├── HintLabel (Label) └── ButtonRow (HBoxContainer) ├── SaveButton (Button) └── BackButton (Button)
+
+Vstupy
+Zdroj
+Typ
+Popis
+GameManager.player_data
+PlayerData
+Data hráče — čtení i zápis tréninkového plánu
+player_data.training_plan
+Array[String]
+Uložený plán z předchozí návštěvy (4 klíče)
+slot1–4.selected
+int
+Index vybraného TECH atributu v každém slotu
+
+Výstupy
+Cíl
+Metoda
+Popis
+GameManager.player_data.training_plan
+Přímý zápis p.training_plan = new_plan
+Uložení nového tréninkového plánu (4 klíče)
+GameManager
+goto_week_screen()
+Přechod zpět po Save nebo Back
+
+Dostupné TECH atributy (sloty)
+Definovány jako _tech_keys: Array[String] = PlayerData.TECH_ATTRS.duplicate() — kopíruje přímo z PlayerData konstanty.
+Index
+Klíč
+Zobrazený název
+0
+"shooting"
+Shooting
+1
+"passing"
+Passing
+2
+"puck_control"
+Puck Control
+3
+"first_touch"
+First Touch
+4
+"defence"
+Defence
+
+Logika — flow
+_ready()
+	1.	Připojí signály SaveButton a BackButton
+	2.	Null check GameManager.player_data → pokud null, okamžitý návrat na WeekScreen
+	3.	Naplní všechny 4 OptionButtony přes _fill_option()
+	4.	Načte uložený plán přes _load_from_player_data()
+_fill_option(ob: OptionButton)
+Vymaže OptionButton a naplní ho pretty-name verzí všech _tech_keys. Defaultně vybere index 0 (Shooting).
+_load_from_player_data()
+Čte přímo z p.training_plan.
+	•	Pokud training_plan je Array a má 4 položky → nastaví sloty podle uloženého plánu
+	•	Pokud ne → výchozí stav: všechny 4 sloty = Shooting
+_select_by_key(ob, key)
+Najde index klíče v _tech_keys pomocí find(). Pokud klíč není nalezen, vybere index 0 (safe fallback).
+_on_save_pressed()
+	1.	Null check player_data
+	2.	Sestaví new_plan: Array[String] ze 4 slotů
+	3.	Uloží přes p.training_plan = new_plan
+	4.	Přejde na WeekScreen
+_on_back_pressed()
+Přejde na WeekScreen bez uložení.
+_pretty_name(key) -> String
+Lokální helper pro zobrazení čitelného názvu atributu v UI.
+
+Edge Cases
+Situace
+Chování
+player_data == null při vstupu
+Přesměrování na WeekScreen, scéna se nenačte
+training_plan je prázdné nebo nemá 4 položky
+Výchozí stav: 4× Shooting
+Klíč atributu v training_plan nezodpovídá _tech_keys
+_select_by_key vybere index 0 (Shooting)
+Hráč klikne Back bez uložení
+Plán se nezmění, zůstane z minulé návštěvy
+Všechny 4 sloty = stejný atribut
+Povoleno, není validace uniqueness
+
+Závislosti
+Závislost
+Popis
+GameManager (Autoload)
+Čtení player_data, navigace
+PlayerData
+Konstanty TECH_ATTRS, ATTR_*, přímý zápis do training_plan
+WeekScreen
+Cílová scéna po Save i Back
+
+Co scéna NEDĚLÁ (zatím)
+	•	❌ Zobrazení aktuálních hodnot atributů vedle slotů
+	•	❌ Validace — lze dát do všech 4 slotů stejný atribut
+	•	❌ Podpora PHYS atributů (připraveno v PlayerData.TRAINABLE_ATTRS)
+	•	❌ Vizuální indikace kolik tréninkových slotů je dostupných (závisí na počtu zápasů)
+	•	❌ Informace o XP zisku per slot
+
+Napojení na bibli
+Biblický prvek
+Stav
+4 tréninkové sloty
+✅ Implementováno
+Pouze TECH atributy v MVP tréninku
+✅ Implementováno
+Plán platí celou sezónu dokud ho nezměníš
+✅ Implementováno (přetrvá v PlayerData)
+Omezení slotů podle počtu zápasů
+❌ Chybí — get_available_trainings() existuje v PlayerData ale není použito
+
+Technický dluh
+	1.	[MEDIUM] Zapojit get_available_trainings(matches_this_week) — skrýt/deaktivovat sloty které nejsou dostupné
+	2.	[LOW] Přidat zobrazení aktuální hodnoty atributu v každém slotu (např. Shooting [32])
+
+Navržená budoucí rozšíření
+	1.	Přidat PHYS atributy jako volitelnou skupinu (toggle TECH / PHYS)
+	2.	Přidat XP preview — kolik XP hráč získá příští týden za aktuální plán
+	3.	Přidat vizuální zvýraznění pokud jsou 2+ sloty stejný atribut (varování, ne blokace)
+ 
