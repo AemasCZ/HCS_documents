@@ -20,9 +20,11 @@ var match_sim_shooting_skill: int = 1
 func _ready() -> void:
 	randomize()
 
-func new_game(player_name: String, player_class: String) -> void:
+# ZMĚNA: rozšíření o player_team (default kvůli kompatibilitě)
+func new_game(player_name: String, player_class: String, player_team: String = "") -> void:
 	player_data = PLAYER_DATA_SCRIPT.new()
-	player_data.setup(player_name, player_class)
+	# ZMĚNA: předání týmu + league name do PlayerData.setup()
+	player_data.setup(player_name, player_class, player_team, PlayerData.LEAGUE_NAME)
 
 func change_scene(scene_path: String) -> void:
 	get_tree().change_scene_to_file(scene_path)

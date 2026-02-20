@@ -29,6 +29,9 @@ layout_mode = 2
 [node name="ClassSelect" type="OptionButton" parent="CenterContainer/VBoxContainer" unique_id=2122473214]
 layout_mode = 2
 
+[node name="TeamSelect" type="OptionButton" parent="CenterContainer/VBoxContainer" unique_id=1182445875]
+layout_mode = 2
+
 [node name="StartButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=504936633]
 layout_mode = 2
 text = "Start Career"

@@ -63,7 +63,7 @@ func _ensure_week_state() -> void:
 		# Remaining může být 0 (když jsou zápasy hotové) -> to JE validní stav, NEgeneruj nový
 		matches_remaining = clampi(saved_remaining, 0, saved_total)
 
-	trainings_available = maxi(4 - matches_this_week, 1)
+	trainings_available = clampi(4 - matches_this_week, 0, 4)
 
 func _apply_return_from_match_if_needed() -> void:
 	var returned := bool(GameManager.get_meta(META_RETURNED_FROM_MATCH, false))
@@ -93,7 +93,7 @@ func _end_week_apply_training_and_advance() -> void:
 		_log("ERROR: training_plan not set (needs 4 slots). Advancing week anyway.")
 	else:
 		_log("Training: applying plan (+1 XP each slot).")
-		for i in range(4):
+		for i in range(trainings_available):
 			var key: String = str(p.training_plan[i])
 			p.add_xp_and_resolve(key, 1)
 
@@ -125,7 +125,8 @@ func _refresh_ui() -> void:
 
 	var p: PlayerData = GameManager.player_data
 	week_label.text = "Week: %d | Month: %d | Season: %d" % [p.current_week, p.current_month, p.current_season]
-	class_label.text = "Player: %s (%s)" % [p.player_name, p.player_class]
+	# ZMĚNA: tým pod jménem a nad pozicí (class)
+	class_label.text = "%s\n%s\n%s" % [p.player_name, p.team_name, p.player_class]
 
 	matches_label.text = "Matches remaining: %d/%d" % [matches_remaining, matches_this_week]
 	trainings_label.text = "Trainings available: %d (4 - matches, min 1)" % trainings_available

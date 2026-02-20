@@ -4,6 +4,10 @@ class_name PlayerData
 # --- Basic identity ---
 @export var player_name: String = ""
 @export var player_class: String = ""
+# ZMĚNA: League & team identity (MVP)
+@export var team_name: String = ""
+@export var team_overall: int = 0
+@export var league_name: String = ""
 
 # --- Time progression (used by WeekScreen) ---
 @export var current_week: int = 1
@@ -88,27 +92,80 @@ const ATTR_GROUP: Dictionary = {
 	ATTR_STAMINA: GROUP_PHYS,
 }
 
-# --- Classes (stringy odpovídají CharacterCreation) ---
-const CLASS_SNIPER := "Sniper"
-const CLASS_PLAYMAKER := "Playmaker"
-const CLASS_TWO_WAY := "Two-Way Forward"
-const CLASS_DEFENSIVE := "Defensive Forward"
+# ------------------------------------------------------------
+#  PLAYER DATA — Konstanty a runtime data
+#  (stringy u class musí odpovídat CharacterCreation)
+# ------------------------------------------------------------
 
+# --- Classes (stringy odpovídají CharacterCreation) ---
+const CLASS_SNIPER: String = "Sniper"
+const CLASS_PLAYMAKER: String = "Playmaker"
+const CLASS_TWO_WAY: String = "Two-Way Forward"
+const CLASS_DEFENSIVE: String = "Defensive Forward"
+
+# Seznam class pro UI (např. OptionButton) a validaci
 const CLASS_LIST: Array[String] = [
-	CLASS_SNIPER, CLASS_PLAYMAKER, CLASS_TWO_WAY, CLASS_DEFENSIVE
+	CLASS_SNIPER,
+	CLASS_PLAYMAKER,
+	CLASS_TWO_WAY,
+	CLASS_DEFENSIVE
 ]
 
-# TEST: všechny atributy nastavíme podle classy (ověření výběru)
+# --- League & Teams ---
+# Název ligy (zatím pevně daný)
+const LEAGUE_NAME: String = "Czech League"
+
+# Slovník: název týmu -> overall rating
+const TEAMS: Dictionary = {
+	"HC Pardubice": 76,
+	"HC Karlovy Vary": 75,
+	"HC Plzeň": 75,
+	"HC Liberec": 75,
+	"HC Třinec": 74,
+	"Mountfield HK": 74,
+	"HC Sparta Praha": 73,
+	"HC Kometa Brno": 73,
+	"HC Vítkovice": 72,
+	"HC České Budějovice": 72,
+	"HC Olomouc": 71,
+	"HC Kladno": 71,
+	"HC Mladá Boleslav": 71,
+	"HC Litvínov": 68
+}
+
+# Seřazený seznam názvů týmů (pro UI — OptionButton)
+const TEAM_NAMES: Array[String] = [
+	"HC Pardubice",
+	"HC Karlovy Vary",
+	"HC Plzeň",
+	"HC Liberec",
+	"HC Třinec",
+	"Mountfield HK",
+	"HC Sparta Praha",
+	"HC Kometa Brno",
+	"HC Vítkovice",
+	"HC České Budějovice",
+	"HC Olomouc",
+	"HC Kladno",
+	"HC Mladá Boleslav",
+	"HC Litvínov"
+]
+
+# TEST: základní hodnota atributů podle classy (ověření výběru)
+# key:String (class) -> int (base hodnota)
 const CLASS_BASE_VALUES: Dictionary = {
 	CLASS_SNIPER: 10,
 	CLASS_PLAYMAKER: 11,
 	CLASS_TWO_WAY: 12,
-	CLASS_DEFENSIVE: 13,
+	CLASS_DEFENSIVE: 13
 }
 
 # --- Runtime data ---
+# Hodnoty atributů hráče
 # key:String -> int
 var attr_values: Dictionary = {}
+
+# XP do atributů hráče
 # key:String -> int
 var attr_xp: Dictionary = {}
 
@@ -116,7 +173,7 @@ var attr_xp: Dictionary = {}
 var training_plan: Array[String] = []
 
 # --- Setup ---
-func setup(p_name: String, p_class: String) -> void:
+func setup(p_name: String, p_class: String, p_team: String = "", p_league: String = "") -> void:
 	player_name = p_name.strip_edges()
 	player_class = p_class
 
@@ -126,7 +183,15 @@ func setup(p_name: String, p_class: String) -> void:
 
 	_initialize_attributes()
 	_apply_class_baseline(player_class)
-	_initialize_training_plan() # ZMĚNA
+	_initialize_training_plan()
+
+	# ZMĚNA: uložit tým + ligu a spočítat overall
+	team_name = p_team
+	league_name = p_league
+	if TEAMS.has(p_team):
+		team_overall = int(TEAMS[p_team])
+	else:
+		team_overall = 0
 
 func _initialize_attributes() -> void:
 	attr_values.clear()
