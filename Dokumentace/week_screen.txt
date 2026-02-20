@@ -1,0 +1,115 @@
+week_screen.gd — Dokumentace
+Přehled
+Hlavní herní obrazovka. Zobrazuje aktuální stav hráče (týden, atributy, tréninkový plán) a řídí průběh týdne — simulaci zápasů a aplikaci tréninkového plánu. Je centrálním hubem mezi TrainingScreen a MatchSimScreen.
+ 
+Soubor
+•	Soubor: res://scenes/week_screen.tscn + week_screen.gd
+•	Typ uzlu: Control
+•	Stav: 🟢 Implementováno (MVP verze)
+ 
+Node struktura
+Control └── CenterContainer └── VBoxContainer ├── WeekLabel (Label) ├── ClassLabel (Label) ├── MatchesLabel (Label) ├── TrainingsLabel (Label) ├── AttributesLabel (RichTextLabel, bbcode_enabled) ├── OpenTrainingButton (Button) ├── ConfirmWeekButton (Button) └── LogLabel (RichTextLabel)
+ 
+Vstupy
+Zdroj	Typ	Popis
+GameManager.player_data	PlayerData	Data hráče — čtení atributů, tréninkového plánu, časové progrese
+GameManager.get_meta(META_*)	Variant	Persist stav zápasů mezi reloady scény
+Meta klíče (GameManager)
+Klíč	Typ	Popis
+"ws_matches_week"	int	Číslo týdne kdy byl stav vygenerován (pro detekci nového týdne)
+"ws_matches_season"	int	Číslo sezóny kdy byl stav vygenerován
+"ws_matches_total"	int	Celkový počet zápasů v tomto týdnu (1–3)
+"ws_matches_remaining"	int	Zbývající počet zápasů (0 = všechny odehrány)
+"ws_returned_from_match"	bool	Flag — true pokud přicházíme z MatchSimScreen
+"match_sim_shooting_skill"	int	Shooting skill předávaný do MatchSimScreen
+ 
+Výstupy
+Cíl	Metoda / Signál	Popis
+GameManager	goto_training_screen()	Přechod na TrainingScreen
+GameManager	set_meta(META_*, ...)	Persist stav zápasů
+SceneTree	change_scene_to_file("match_sim_screen.tscn")	Přechod na MatchSimScreen (přímý, bez goto)
+PlayerData	add_xp_and_resolve(key, 1)	Aplikace tréninkového plánu na konci týdne
+PlayerData	advance_week()	Posun časové osy
+ 
+Lokální proměnné
+Proměnná	Typ	Popis
+matches_this_week	int	Celkový počet zápasů pro tento týden
+trainings_available	int	Počet dostupných tréninkových slotů (max(4 - matches, 1))
+matches_remaining	int	Kolik zápasů zbývá odehrát
+ 
+Logika — flow
+_ready()
+1.	Připojí signály tlačítek
+2.	Volá _ensure_week_state() — inicializuje nebo obnoví stav zápasů z meta
+3.	Volá _apply_return_from_match_if_needed() — zpracuje návrat z MatchSimu
+4.	Volá _refresh_ui()
+_ensure_week_state()
+Detekuje zda jsme v novém týdnu nebo jen reloadujeme scénu.
+•	Nový týden (saved_week ≠ current_week, nebo saved_season ≠ current_season, nebo saved_total ≤ 0): Vygeneruje matches_this_week = randi_range(1, 3), uloží do meta
+•	Stejný týden: Načte uložené hodnoty z meta. matches_remaining = 0 je validní stav (všechny odehrány), NEgeneruje nový počet
+_apply_return_from_match_if_needed()
+Pokud meta "ws_returned_from_match" = true:
+1.	Resetuje flag na false
+2.	Sníží matches_remaining o 1 (min 0)
+3.	Uloží do meta
+4.	Pokud matches_remaining <= 0: zaloguje výzvu ke kliknutí na Train
+_end_week_apply_training_and_advance()
+Voláno po kliknutí na "Train" (tj. všechny zápasy jsou odehrány).
+1.	Iteruje přes p.training_plan[0..3], volá p.add_xp_and_resolve(key, 1) pro každý slot
+2.	Volá p.advance_week()
+3.	Resetuje meta stav (aby nový týden vygeneroval nový počet zápasů)
+4.	Volá znovu _ensure_week_state() pro nový týden
+_refresh_ui()
+Přepíše všechny labely aktuálním stavem. Klíčová logika tlačítka:
+•	matches_remaining > 0 → text = "Simulate match", spustí MatchSim
+•	matches_remaining <= 0 → text = "Train", spustí konec týdne
+_on_confirm_week_pressed()
+•	Pokud matches_remaining <= 0: volá _end_week_apply_training_and_advance()
+•	Jinak: předá shooting skill přes GameManager.set_meta("match_sim_shooting_skill", skill) a přejde na MatchSimScreen
+_build_attributes_text(p)
+Sestaví BBCode text pro AttributesLabel:
+•	Tréninkový plán (4 sloty s pretty-name)
+•	TECH atributy s hodnotou a XP (Shooting: 32 (1/3xp))
+•	MENTAL atributy (jen hodnota)
+•	PHYS atributy (jen hodnota)
+ 
+Edge Cases
+Situace	Chování
+player_data == null	UI zobrazí "No player data!", zápasy/tréninky jsou "-"
+matches_remaining = 0 je načteno z meta	Validní stav, NEgeneruje nový týden
+training_plan.size() != 4 na konci týdne	Zaloguje ERROR, přesto posune týden
+Scéna reloadovaná uprostřed týdne (přechod z TrainingSreen)	Meta zachová stav, _ensure_week_state() ho obnoví
+Přechod z MatchSim a zpět	META_RETURNED_FROM_MATCH zajistí správné odečtení jednoho zápasu
+ 
+Závislosti
+Závislost	Popis
+GameManager (Autoload)	Player data, meta persist, navigace
+PlayerData	Atributy, XP API, advance_week, training_plan
+TrainingScreen	Cíl OpenTrainingButton
+MatchSimScreen	Cíl po kliknutí Simulate match
+ 
+Co scéna NEDĚLÁ (zatím)
+•	❌ Zobrazení výsledků zápasů (výhra/prohra, skóre) přímo na WeekScreen
+•	❌ Rozlišení výsledku tréninku (kolik level-upů proběhlo) v UI
+•	❌ Validace tréninkového plánu před koncem týdne
+•	❌ Omezení počtu aktivních tréninkových slotů podle počtu zápasů
+•	❌ Přechod na WeekPreviewScreen (scéna existuje ale není zapojena do flow)
+ 
+Napojení na bibli
+Biblický prvek	Stav
+Týdenní cyklus (tréninky + zápasy)	✅ Implementováno
+1–3 zápasy týdně	✅ randi_range(1, 3)
+Tréninky = 4 - zápasy, min 1	✅ maxi(4 - matches, 1)
+XP systém a level-upy	✅ přes add_xp_and_resolve()
+Časová progrese (týden/měsíc/sezóna)	✅ přes advance_week()
+ 
+Technický dluh
+1.	[MEDIUM] _generate_new_week() existuje ale není nikde volána — mrtvý kód, lze smazat
+2.	[LOW] Shooting je jediný atribut vstupující do zápasové simulace — ostatní atributy zatím nemají vliv na zápas
+ 
+Navržená budoucí rozšíření
+1.	Zobrazit výsledek tréninku po "Train" — které atributy se zvedlo a o kolik
+2.	Zapojit WeekPreviewScreen jako alternativní flow před simulací zápasů
+3.	Přidat přehled výsledků zápasů (výhra/prohra, skóre)
+4.	Přidat vliv dalších atributů (Passing, Defence...) na zápasovou simulaci
+

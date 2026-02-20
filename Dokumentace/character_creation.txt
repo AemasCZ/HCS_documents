@@ -1,0 +1,94 @@
+character_creation.gd — Dokumentace
+Přehled
+Scéna pro vytvoření nového hráče na začátku hry. Hráč zadá jméno a vybere classu (archetyp). Po potvrzení se inicializuje nová hra a přechází se na týdenní obrazovku.
+
+Scéna
+●      Soubor: character_creation.gd
+●      Typ uzlu: Control
+●      Stav: 🟢 Implementováno (základní verze)
+
+Node struktura (předpokládaná)
+Control
+└── CenterContainer
+    └── VBoxContainer
+        ├── NameInput       (LineEdit)
+        ├── ClassSelect     (OptionButton)
+        └── StartButton     (Button)
+ 
+
+Vstupy
+Zdroj
+Typ
+Popis
+NameInput.text
+String
+Jméno hráče zadané uživatelem
+ClassSelect.selected
+int
+Index vybrané classy z OptionButton
+
+Výstupy
+Cíl
+Metoda / Signál
+Popis
+GameManager
+new_game(player_name, selected_class)
+Inicializace nové hry s daty hráče
+GameManager
+goto_week_screen()
+Přechod na týdenní obrazovku
+
+Logika
+	1.	_ready() — naplní ClassSelect ze statického pole CLASSES, připojí signál pressed na tlačítko
+	2.	_populate_classes() — vymaže OptionButton a znovu ho naplní ze CLASSES
+	3.	_on_start_pressed() — přečte jméno (fallback na "Player" pokud je prázdné), přečte vybranou classu, zavolá GameManager.new_game() a pak GameManager.goto_week_screen()
+
+Dostupné classy (CLASSES konstanta)
+"Sniper"
+"Playmaker"
+"Two-Way Forward"
+"Defensive Forward"
+ 
+Odpovídá definici v HCS Bible — Tvorba hráče & Classy.
+
+Edge Cases
+Situace
+Chování
+Prázdné jméno
+Automaticky nastaven fallback "Player"
+Žádná classa nevybrána
+OptionButton defaultně vybírá index 0 (Sniper) — Godot výchozí chování
+GameManager neexistuje
+Runtime error — GameManager musí být Autoload singleton
+
+Závislosti
+●      GameManager (Autoload singleton) — musí exposovat:
+○      new_game(player_name: String, selected_class: String) -> void
+○      goto_week_screen() -> void
+
+Co scéna NEDĚLÁ (zatím)
+●      ❌ Pevné volby (Původ, Povaha, Sportovní zázemí) — viz bible, připraveno do budoucna
+●      ❌ Draftové eventy (5 kol mládežnického draftu) — viz bible, připraveno do budoucna
+●      ❌ Validace jména (délka, zakázané znaky)
+●      ❌ Vizuální preview classy (popis, ikona, startovní atributy)
+
+Napojení na bibli
+Biblický prvek
+Stav v kódu
+4 classy (Sniper, Playmaker, Two-Way, Defensive)
+✅ Implementováno
+Jméno hráče
+✅ Implementováno
+Pevné volby (Původ, Povaha, Zázemí)
+❌ Chybí
+Draftové eventy
+❌ Chybí
+Škálování atributů podle země/ligy
+❌ Chybí
+
+Navržená budoucí rozšíření
+	1.	Přidat sekci pevných voleb (3 OptionButton nebo card-based UI)
+	2.	Přidat popis classy zobrazený po výběru (tooltip nebo panel vpravo)
+	3.	Přidat draft event flow jako samostatnou scénu spouštěnou po new_game()
+	4.	Validace délky jména (doporučeno max 24 znaků)
+ 
